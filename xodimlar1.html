@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1100">
+    <title>Xodimlar Bo'limi</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: #232428;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 32px auto;
+            background: #333438;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.22);
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 32px;
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+
+        .form-section label {
+            color: #fff;
+        }
+
+        .form-section input,
+        .form-section select {
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            background: #18191B;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .form-section button {
+            width: 130px;
+            align-self: flex-start;
+            background: #1388f3;
+            color: #fff;
+            border: none;
+            padding: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-section button:active {
+            background: #0a72cb;
+        }
+
+        .table-section table {
+            width: 100%;
+            background: #424447;
+            color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            border-collapse: collapse;
+        }
+
+        .table-section th,
+        .table-section td {
+            padding: 12px 8px;
+            text-align: left;
+        }
+
+        .table-section th {
+            background: #3a3b3e;
+            font-weight: bold;
+        }
+
+        .table-section tr:nth-child(even) {
+            background: #37383a;
+        }
+
+        .action-btn {
+            padding: 5px 12px;
+            margin-right: 4px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #232428;
+        }
+
+        .delete-btn {
+            background: #d32f2f;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Xodimlar Bo'limi</h1>
+        <div class="form-section">
+            <label>Xodim Ismi</label>
+            <input type="text" id="name" placeholder="Xodim ismini kiriting">
+            <label>Telefon Raqami</label>
+            <input type="text" id="phone" placeholder="Telefon raqamini kiriting">
+            <label>Xodim Roli</label>
+            <select id="role">
+                <option value="">Rolni tanlang</option>
+                <option value="Admin">Admin</option>
+                <option value="User">User</option>
+                <option value="Manager">Manager</option>
+            </select>
+            <button id="addBtn">Qo‘shish</button>
+        </div>
+        <div class="table-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Ism</th>
+                        <th>Telefon</th>
+                        <th>Rol</th>
+                        <th>Harakat</th>
+                    </tr>
+                </thead>
+                <tbody id="staffTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let staffData = JSON.parse(localStorage.getItem('staffData')) || [];
+        let editIndex = null;
+
+        function renderTable() {
+            const tbody = document.getElementById('staffTable');
+            tbody.innerHTML = '';
+            if (staffData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#bbb;">Xodimlar yo'q</td></tr>`;
+                return;
+            }
+            staffData.forEach((item, idx) => {
+                tbody.innerHTML += `
+            <tr>
+                <td>${idx + 1}</td>
+                <td>${item.name}</td>
+                <td>${item.phone}</td>
+                <td>${item.role}</td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="editStaff(${idx})">Tahrirlash</button>
+                    <button class="action-btn delete-btn" onclick="deleteStaff(${idx})">O'chirish</button>
+                </td>
+            </tr>
+        `;
+            });
+        }
+
+        function resetForm() {
+            document.getElementById('name').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('role').value = '';
+            editIndex = null;
+            document.getElementById('addBtn').innerText = "Qo‘shish";
+        }
+
+        document.getElementById('addBtn').onclick = function () {
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const role = document.getElementById('role').value;
+
+            if (!name || !phone || !role) {
+                alert("Barcha maydonlarni to‘ldiring!");
+                return;
+            }
+            if (editIndex !== null) {
+                staffData[editIndex] = { name, phone, role };
+            } else {
+                staffData.push({ name, phone, role });
+            }
+            localStorage.setItem('staffData', JSON.stringify(staffData));
+            renderTable();
+            resetForm();
+        };
+
+        window.editStaff = function (idx) {
+            const item = staffData[idx];
+            document.getElementById('name').value = item.name;
+            document.getElementById('phone').value = item.phone;
+            document.getElementById('role').value = item.role;
+            editIndex = idx;
+            document.getElementById('addBtn').innerText = "Saqlash";
+        };
+
+        window.deleteStaff = function (idx) {
+            if (confirm("O'chirishni hohlaysizmi?")) {
+                staffData.splice(idx, 1);
+                localStorage.setItem('staffData', JSON.stringify(staffData));
+                renderTable();
+                resetForm();
+            }
+        };
+
+        renderTable();
+    </script>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
